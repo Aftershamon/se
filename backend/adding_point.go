@@ -18,7 +18,18 @@ type extendedAdding_point struct {
 	Student_Name	 string
 	Subject_ID		 string
 	Section			 uint	
+	Course_Name     string
+	Subject_TH_Name string
+	Subject_EN_Name string
+	Day             string
+	Start_Time      string
+	End_Time        string
+	Exam_Date       string
+	Unit            string
+	Exam_Start_Time string
+	Exam_End_Time   string
 }
+
 // POST /course
 func CreateAdding_point(c *gin.Context) {
 	var adding_point entity.Adding_point
@@ -83,6 +94,42 @@ func CreateAdding_point(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": new_adding_point})
+}
+func GetSubjectByAdding(c *gin.Context) {
+	/* Query subject record(s) by subject_id */
+
+	var extendedAdding_point []extendedAdding_point
+
+	subject_id := c.Param("subject_id")
+
+	query := entity.DB().Raw("SELECT e.*, s.* ,cs.day,cs.start_time,cs.end_time ,ex.* ,p.* FROM enrolls e JOIN subjects s JOIN class_schedules cs JOIN exam_schedules ex JOIN professors p ON e.subject_id = s.subject_id AND e.section = s.section AND e.class_schedule_id = cs.class_schedule_id AND e.exam_schedule_id = ex.exam_schedule_id AND s.professor_id = p.id WHERE subject_id = ?", subject_id).Scan(&extendedAdding_point)
+	if err := query.Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": extendedAdding_point})
+}
+func ListAddingByEnroll(c *gin.Context) {
+	/*	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		Function for list all records from `subject` table.
+		HTTP GET : /subjects
+		++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	*/
+
+	//var enroll []entity.Enroll
+
+	//SELECT e.*, c.* ,cs.* FROM `enrolls` e JOIN `subjects` c  JOIN `class_schedules` cs ON e.subject_id = c.subject_id  AND  e.section = c.section AND e.subject_id = cs.subject_id
+	//SELECT e.* , c.* , s.* , ex.* , sj.* FROM enrolls e JOIN class_schedules c JOIN students s JOIN subjects sj JOIN exam_schedules ex ON e.section = sj.section AND e.student_id = s.student_id AND e.subject_id = sj.subject_id AND c.class_schedule_id = e.class_schedule_id AND s.student_id = e.student_id AND ex.subject_id = c.subject_id
+	//SELECT e.* , c.* , s.* , ex.* , sj.* FROM enrolls e JOIN class_schedules c JOIN students s JOIN subjects sj JOIN exam_schedules ex ON e.section = sj.section AND e.student_id = s.student_id AND e.subject_id = sj.subject_id AND c.class_schedule_id = e.class_schedule_id AND s.student_id = e.student_id AND ex.subject_id = c.subject_id
+	//SELECT e.*, s.* ,cs.day,cs.start_time,cs.end_time FROM enrolls e JOIN subjects s JOIN class_schedules cs ON e.subject_id = s.subject_id AND e.section = s.section AND e.class_schedule_id = cs.class_schedule_id;
+	var extendedAdding_point []extendedAdding_point
+	query := entity.DB().Raw("SELECT e.*, s.* ,cs.day,cs.start_time,cs.end_time ,ex.* ,p.* FROM enrolls e JOIN subjects s JOIN class_schedules cs JOIN exam_schedules ex JOIN professors p ON e.subject_id = s.subject_id AND e.section = s.section AND e.class_schedule_id = cs.class_schedule_id AND e.exam_schedule_id = ex.exam_schedule_id AND s.professor_id = p.id").Scan(&extendedAdding_point)
+	if err := query.Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": extendedAdding_point})
+
 }
 
 // List /request
